@@ -1,0 +1,36 @@
+{
+  "name": "warrant-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "ant-design-vue": "^4.2.6",
+    "axios": "^1.7.9",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13",
+    "vue-virtual-scroller": "^2.0.0-beta.8"
+  },
+  "devDependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vitest/coverage-v8": "^3.1.1",
+    "@vue/test-utils": "^2.4.6",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^29.1.1",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.7.2",
+    "unplugin-vue-components": "^0.27.5",
+    "vite": "^6.2.0",
+    "vitest": "^3.1.1",
+    "vue-tsc": "^2.2.0"
+  }
+}
