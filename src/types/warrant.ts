@@ -35,19 +35,31 @@ export interface TrialLog {
 }
 
 /**
- * 儲存試算紀錄的請求 Payload
+ * 儲存試算紀錄的請求 Payload（warrantId 放 URL path）
  */
 export interface SaveTrialLogPayload {
-  warrantId: string
-  /** 標的市價，後端負責計算 theoryPrice 與 hedgeQty */
   marketPrice: number
+  theoryPrice: number
+  hedgeQty: number
 }
 
 /**
- * API 回應通用包裝格式
+ * Delta 狀態：價內 / 價平 / 價外
  */
-export interface ApiResponse<T> {
-  data: T
-  message?: string
-  success: boolean
+export type DeltaStatus = 'ITM' | 'ATM' | 'OTM'
+
+/**
+ * POST /api/warrants/{warrantId}/calculate 回應格式
+ */
+export interface TrialCalculation {
+  warrantId: string
+  marketPrice: number
+  strikePrice: number
+  conversionRatio: number
+  warrantType: 'CALL' | 'PUT'
+  positionQty: number
+  delta: number
+  deltaStatus: DeltaStatus
+  theoryPrice: number
+  hedgeQty: number
 }

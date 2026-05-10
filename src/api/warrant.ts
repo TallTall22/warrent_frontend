@@ -1,33 +1,40 @@
 import apiClient from './index'
-import type { Warrant, TrialLog, SaveTrialLogPayload } from '@/types/warrant'
+import type { Warrant, TrialLog, SaveTrialLogPayload, TrialCalculation } from '@/types/warrant'
 
-/**
- * T07 · 取得所有權證清單
- * GET /api/warrants
- */
 export async function getWarrants(): Promise<Warrant[]> {
-  const response = await apiClient.get<Warrant[]>('/warrants')
-  return response.data
+  const response = await apiClient.get<{ data: Warrant[] }>('/warrants')
+  return response.data.data
 }
 
-/**
- * T08 · 取得指定權證的試算歷史紀錄（最近 10 筆）
- * GET /api/trial-logs/:warrantId
- * @param warrantId 權證代碼
- */
 export async function getTrialLogs(warrantId: string): Promise<TrialLog[]> {
-  const response = await apiClient.get<TrialLog[]>(`/trial-logs/${encodeURIComponent(warrantId)}`, {
-    params: { limit: 10 },
-  })
+  const response = await apiClient.get<{ warrantId: string; logs: TrialLog[] }>(
+    `/warrants/${encodeURIComponent(warrantId)}/trial-logs`,
+  )
+  return response.data.logs
+}
+
+export async function saveTrialLog(warrantId: string, payload: SaveTrialLogPayload): Promise<TrialLog> {
+  const response = await apiClient.post<TrialLog>(
+    `/warrants/${encodeURIComponent(warrantId)}/trial-logs`,
+    payload,
+    { headers: { 'X-Idempotency-Key': crypto.randomUUID() } },
+  )
   return response.data
 }
 
 /**
- * T09 · 儲存試算紀錄
- * POST /api/trial-log
- * @param payload 包含 warrantId 與 marketPrice
+ * 呼叫後端即時試算（Delta、理論價值、建議避險張數）
+ * POST /api/warrants/{warrantId}/calculate
+ * @param warrantId 權證代碼
+ * @param marketPrice 標的市價（必須 > 0）
  */
-export async function saveTrialLog(payload: SaveTrialLogPayload): Promise<TrialLog> {
-  const response = await apiClient.post<TrialLog>('/trial-log', payload)
+export async function calculateWarrant(
+  warrantId: string,
+  marketPrice: number,
+): Promise<TrialCalculation> {
+  const response = await apiClient.post<TrialCalculation>(
+    `/warrants/${encodeURIComponent(warrantId)}/calculate`,
+    { marketPrice },
+  )
   return response.data
 }
