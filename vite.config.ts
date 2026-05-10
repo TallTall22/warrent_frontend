@@ -9,7 +9,7 @@ export default defineConfig({
     vue(),
     Components({
       resolvers: [
-        AntDesignVueResolver({ importStyle: 'css' }),
+        AntDesignVueResolver({ importStyle: false }),
       ],
     }),
   ],
