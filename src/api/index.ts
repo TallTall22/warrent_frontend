@@ -54,13 +54,15 @@ apiClient.interceptors.response.use(
 
     const friendlyMessage =
       serverMessage ??
-      (statusCode === 404
-        ? '找不到指定資源'
-        : statusCode === 500
-          ? '伺服器內部錯誤，請稍後再試'
-          : statusCode === 401
-            ? '未授權，請重新登入'
-            : '網路連線異常，請確認網路狀態')
+      (error.code === 'ECONNABORTED'
+        ? '請求逾時，請稍後再試'
+        : statusCode === 404
+          ? '找不到指定資源'
+          : statusCode === 500
+            ? '伺服器內部錯誤，請稍後再試'
+            : statusCode === 401
+              ? '未授權，請重新登入'
+              : '網路連線異常，請確認網路狀態')
 
     return Promise.reject(new ApiError(friendlyMessage, statusCode))
   },
