@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import { useWarrantStore } from '@/stores/warrant'
 import { useTrialCalculation } from '@/composables/useTrialCalculation'
 import { saveTrialLog } from '@/api/warrant'
 import type { DeltaStatus } from '@/types/warrant'
+import { formatPrice, formatQty } from '@/utils/formatters'
 
 const store = useWarrantStore()
 
@@ -22,6 +23,18 @@ const { calculation, isCalculating, calcError } = useTrialCalculation(
   marketPrice,
 )
 
+// UX-01：切換權證時清空市價，避免舊數值殘留誤導試算
+watch(
+  () => store.selectedWarrant?.warrantId,
+  () => { marketPrice.value = null },
+)
+
+// BUG-03：每次新計算結果產生對應的冪等 Key，讓重試可沿用同一個 Key
+const idempotencyKey = ref<string | null>(null)
+watch(calculation, (newVal) => {
+  idempotencyKey.value = newVal !== null ? crypto.randomUUID() : null
+})
+
 /** Delta 狀態對應的 a-tag 色彩 */
 const deltaStatusColor: Record<DeltaStatus, string> = {
   ITM: 'green',
@@ -29,34 +42,23 @@ const deltaStatusColor: Record<DeltaStatus, string> = {
   OTM: 'orange',
 }
 
-/** 格式化 4 位小數（金融數值）*/
-const formatPrice = (val: number): string =>
-  new Intl.NumberFormat('zh-TW', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  }).format(val)
-
-/** 格式化 2 位小數（避險張數）*/
-const formatQty = (val: number): string =>
-  new Intl.NumberFormat('zh-TW', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-
 /** 儲存按鈕 loading 狀態 */
 const isSaving = ref(false)
 
 /**
  * 儲存按鈕是否可用
- * 必須：已選權證、有效市價、後端計算完成（calculation 非 null）、且非儲存中
+ * 必須：已選權證、有效市價、後端計算完成（calculation 非 null）、Key 就緒、且非儲存中
  */
+// BUG-06: also guard against saving while a new calculation is in flight
 const canSave = computed<boolean>(() => {
   return (
     store.selectedWarrant !== null &&
     marketPrice.value !== null &&
     marketPrice.value > 0 &&
     calculation.value !== null &&
-    !isSaving.value
+    idempotencyKey.value !== null &&
+    !isSaving.value &&
+    !isCalculating.value
   )
 })
 
@@ -65,20 +67,28 @@ async function handleSave(): Promise<void> {
     !canSave.value ||
     !store.selectedWarrant ||
     !marketPrice.value ||
-    calculation.value === null
+    calculation.value === null ||
+    idempotencyKey.value === null
   ) return
 
   isSaving.value = true
   try {
-    // 傳入後端 calculate 回傳的 theoryPrice 與 hedgeQty，而非前端計算值
-    const log = await saveTrialLog(store.selectedWarrant.warrantId, {
-      marketPrice: calculation.value.marketPrice,
-      theoryPrice: calculation.value.theoryPrice,
-      hedgeQty: calculation.value.hedgeQty,
-    })
+    // 傳入後端 calculate 回傳的值；Key 由呼叫方持有，失敗重試時沿用同一個 Key
+    const log = await saveTrialLog(
+      store.selectedWarrant.warrantId,
+      {
+        marketPrice: calculation.value.marketPrice,
+        theoryPrice: calculation.value.theoryPrice,
+        hedgeQty: calculation.value.hedgeQty,
+      },
+      idempotencyKey.value,
+    )
     store.prependTrialLog(log)
+    // BUG-05: discard key after success — prevents client-side duplicate on re-click
+    idempotencyKey.value = null
     message.success('試算結果已儲存')
   } catch (err) {
+    // 保留 idempotencyKey，讓使用者點擊重試時仍帶同一個 Key
     message.error(err instanceof Error ? err.message : '儲存失敗，請稍後再試')
   } finally {
     isSaving.value = false
@@ -98,7 +108,7 @@ async function handleSave(): Promise<void> {
           {{ store.selectedWarrant.warrantType }}
         </a-tag>
         <span class="text-sm text-gray-500">
-          履約價 {{ store.selectedWarrant.strikePrice.toFixed(2) }}
+          履約價 {{ store.selectedWarrant.strikePrice.toFixed(4) }}
         </span>
         <span class="text-sm text-gray-500">
           行使比例 {{ store.selectedWarrant.conversionRatio.toFixed(4) }}

@@ -27,7 +27,7 @@
 |------------|--------|------|------|-----------------------------------|
 | `keyword`  | string | 否   | —    | 依 Warrant_ID 前綴模糊搜尋        |
 | `page`     | int    | 否   | 1    | 頁碼（最小值 1）                  |
-| `pageSize` | int    | 否   | 50   | 每頁筆數（1–200）                 |
+| `pageSize` | int    | 否   | 50   | 每頁筆數（1–1000）                |
 
 ### 範例請求
 
@@ -129,17 +129,21 @@ GET /api/warrants/00300C
   "positionQty": 10000,
   "delta": 0.8,
   "deltaStatus": "ITM",
-  "theoryPrice": 128.0000,
+  "theoryPrice": 10.0000,
   "hedgeQty": 8000.00
 }
 ```
 
-| 欄位            | 說明                                          |
-|-----------------|-----------------------------------------------|
-| `delta`         | Delta 值：ITM=0.8 / ATM=0.5 / OTM=0.2        |
-| `deltaStatus`   | Delta 狀態：`ITM`（價內）/ `ATM`（平價）/ `OTM`（價外）|
-| `theoryPrice`   | 權證理論價值 = marketPrice × conversionRatio × delta |
-| `hedgeQty`      | 建議避險數量 = positionQty × delta            |
+> 計算說明（以上例為準）：  
+> - `theoryPrice` = Max(0, (160 - 150) × 1.0) = **10.0000**  
+> - `hedgeQty` = 10000 × 1.0 × 0.8 = **8000.00**
+
+| 欄位            | 說明                                                               |
+|-----------------|--------------------------------------------------------------------|
+| `delta`         | Delta 值：ITM=0.8 / ATM=0.5 / OTM=0.2                             |
+| `deltaStatus`   | Delta 狀態：`ITM`（價內）/ `ATM`（平價）/ `OTM`（價外）           |
+| `theoryPrice`   | CALL：Max(0, (市價 - 履約價) × 行使比例)；PUT：Max(0, (履約價 - 市價) × 行使比例) |
+| `hedgeQty`      | 建議避險數量 = positionQty × conversionRatio × delta               |
 
 #### Delta 判斷規則（CALL）
 
@@ -306,7 +310,7 @@ GET /api/warrants/00300C/trial-logs
 | `marketPrice`  | decimal  | 標的市場價格   |
 | `theoryPrice`  | decimal  | 權證理論價值   |
 | `hedgeQty`     | decimal  | 建議避險數量   |
-| `createdTime`  | datetime | 建立時間（UTC+8）|
+| `createdTime`  | datetime | 建立時間（台灣時間 UTC+8，無時區後綴）|
 
 ---
 

@@ -2,7 +2,10 @@ import apiClient from './index'
 import type { Warrant, TrialLog, SaveTrialLogPayload, TrialCalculation } from '@/types/warrant'
 
 export async function getWarrants(): Promise<Warrant[]> {
-  const response = await apiClient.get<{ data: Warrant[] }>('/warrants')
+  const response = await apiClient.get<{ data: Warrant[] }>(
+    '/warrants',
+    { params: { pageSize: 1000 } },
+  )
   return response.data.data
 }
 
@@ -13,11 +16,15 @@ export async function getTrialLogs(warrantId: string): Promise<TrialLog[]> {
   return response.data.logs
 }
 
-export async function saveTrialLog(warrantId: string, payload: SaveTrialLogPayload): Promise<TrialLog> {
+export async function saveTrialLog(
+  warrantId: string,
+  payload: SaveTrialLogPayload,
+  idempotencyKey: string,
+): Promise<TrialLog> {
   const response = await apiClient.post<TrialLog>(
     `/warrants/${encodeURIComponent(warrantId)}/trial-logs`,
     payload,
-    { headers: { 'X-Idempotency-Key': crypto.randomUUID() } },
+    { headers: { 'X-Idempotency-Key': idempotencyKey } },
   )
   return response.data
 }

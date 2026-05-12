@@ -7,8 +7,10 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AAlert: typeof import('ant-design-vue/es')['Alert']
     AButton: typeof import('ant-design-vue/es')['Button']
     ACard: typeof import('ant-design-vue/es')['Card']
+    ADrawer: typeof import('ant-design-vue/es')['Drawer']
     AEmpty: typeof import('ant-design-vue/es')['Empty']
     AInputNumber: typeof import('ant-design-vue/es')['InputNumber']
     AInputSearch: typeof import('ant-design-vue/es')['InputSearch']
@@ -20,6 +22,7 @@ declare module 'vue' {
     ATag: typeof import('ant-design-vue/es')['Tag']
     CalculatorPanel: typeof import('./src/components/CalculatorPanel.vue')['default']
     HistoryTable: typeof import('./src/components/HistoryTable.vue')['default']
+    SiderContent: typeof import('./src/components/SiderContent.vue')['default']
     WarrantListItem: typeof import('./src/components/WarrantListItem.vue')['default']
     WarrantSider: typeof import('./src/components/WarrantSider.vue')['default']
   }
