@@ -35,21 +35,15 @@ onMounted(() => {
         桌面（≥ lg）：隱藏
       -->
       <div class="lg:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 shrink-0">
-        <a-button
-          type="text"
-          size="large"
+        <button
+          class="flex flex-col justify-center gap-[5px] w-8 h-8 p-1 rounded hover:bg-gray-100 border-none outline-none bg-transparent cursor-pointer"
           aria-label="開啟權證清單"
           @click="openDrawer"
         >
-          <!-- 漢堡 icon（使用 Ant Design Menu icon） -->
-          <template #icon>
-            <span class="flex flex-col gap-[5px] w-5">
-              <span class="block h-0.5 bg-gray-700 rounded" />
-              <span class="block h-0.5 bg-gray-700 rounded" />
-              <span class="block h-0.5 bg-gray-700 rounded" />
-            </span>
-          </template>
-        </a-button>
+          <span class="block h-0.5 bg-gray-700 rounded" />
+          <span class="block h-0.5 bg-gray-700 rounded" />
+          <span class="block h-0.5 bg-gray-700 rounded" />
+        </button>
         <span class="text-sm font-medium text-gray-700">權證避險試算系統</span>
         <span v-if="store.selectedWarrant" class="text-sm text-gray-400">
           — {{ store.selectedWarrant.warrantId }}
@@ -79,13 +73,9 @@ onMounted(() => {
     :width="288"
     :closable="true"
     title="權證清單"
-    class="lg:hidden"
+    :body-style="{ padding: 0, height: '100%', display: 'flex', flexDirection: 'column' }"
     @close="closeDrawer"
   >
-    <template #body>
-      <div class="h-full -mx-6 -my-5">
-        <SiderContent @warrant-selected="closeDrawer" />
-      </div>
-    </template>
+    <SiderContent @warrant-selected="closeDrawer" />
   </a-drawer>
 </template>

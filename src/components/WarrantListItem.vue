@@ -13,11 +13,16 @@ const emit = defineEmits<{
 const formatStrikePrice = (val: number): string =>
   new Intl.NumberFormat('zh-TW', {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 4,
   }).format(val)
 </script>
 
 <template>
+  <!--
+    A11Y-01: role="option" (not "button") is correct for a selectable item
+    inside a role="listbox" parent. aria-selected is valid on role="option".
+    tabindex="0" makes it keyboard-focusable; Enter/Space trigger selection.
+  -->
   <div
     class="flex items-center gap-2 px-3 cursor-pointer rounded-md transition-colors"
     :class="[
@@ -26,9 +31,11 @@ const formatStrikePrice = (val: number): string =>
         : 'hover:bg-gray-50 border-l-2 border-transparent',
     ]"
     style="height: 56px;"
-    role="button"
+    role="option"
     :aria-selected="props.isSelected"
+    :tabindex="props.isSelected ? 0 : -1"
     @click="emit('select')"
+    @keydown.enter.space.prevent="emit('select')"
   >
     <div class="flex flex-col flex-1 min-w-0">
       <span

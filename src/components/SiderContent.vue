@@ -41,7 +41,7 @@ function handleSelectWarrant(warrant: Parameters<typeof store.selectWarrant>[0])
       <a-spin tip="載入中…" />
     </div>
 
-    <!-- 錯誤狀態 -->
+    <!-- 錯誤狀態（僅由 fetchWarrants 失敗觸發，試算記錄錯誤不影響此處） -->
     <div v-else-if="store.errorMessage" class="flex-1 flex flex-col justify-center px-1">
       <a-alert
         type="error"
@@ -64,9 +64,11 @@ function handleSelectWarrant(warrant: Parameters<typeof store.selectWarrant>[0])
       class="py-12"
     />
 
-    <!-- 虛擬捲動清單 -->
+    <!-- A11Y-01: role="listbox" + aria-label for screen readers -->
     <RecycleScroller
       v-else
+      role="listbox"
+      aria-label="權證清單"
       class="flex-1 overflow-auto"
       :items="store.filteredWarrants"
       :item-size="56"

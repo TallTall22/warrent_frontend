@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { ColumnType } from 'ant-design-vue/es/table'
 import { useWarrantStore } from '@/stores/warrant'
 import type { TrialLog } from '@/types/warrant'
+import { formatPrice, formatQty } from '@/utils/formatters'
 
 const store = useWarrantStore()
 
-/** 格式化 ISO 8601 時間為本地時間字串 */
+/** 格式化時間字串為台灣時間（UTC+8）
+ *  後端回傳無時區後綴（e.g. "2026-05-10T18:30:00"），手動補上 +08:00 再解析，
+ *  確保非 UTC+8 的使用者瀏覽器也能正確顯示台灣當地時間。
+ */
 const formatTime = (iso: string): string => {
-  const date = new Date(iso)
+  const hasOffset = /Z$|[+-]\d{2}:\d{2}$/.test(iso)
+  const date = new Date(hasOffset ? iso : `${iso}+08:00`)
   return new Intl.DateTimeFormat('zh-TW', {
     year: 'numeric',
     month: '2-digit',
@@ -20,21 +24,8 @@ const formatTime = (iso: string): string => {
   }).format(date)
 }
 
-/** 格式化 4 位小數金融數值 */
-const formatPrice = (val: number): string =>
-  new Intl.NumberFormat('zh-TW', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  }).format(val)
-
-/** 格式化 2 位小數張數 */
-const formatQty = (val: number): string =>
-  new Intl.NumberFormat('zh-TW', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-
-const columns = computed<ColumnType<TrialLog>[]>(() => [
+// columns is static — no reactive dependencies, no need for computed()
+const columns: ColumnType<TrialLog>[] = [
   {
     title: '存檔時間',
     dataIndex: 'createdTime',
@@ -63,17 +54,24 @@ const columns = computed<ColumnType<TrialLog>[]>(() => [
     align: 'right',
     customRender: ({ value }: { value: number }) => formatQty(value),
   },
-])
+]
 </script>
 
 <template>
   <a-card :bordered="false" class="shadow-sm">
     <template #title>
-      <div class="flex items-center justify-between">
-        <span class="font-semibold text-gray-800">歷史明細（最近 10 筆）</span>
-        <a-spin v-if="store.isLoadingTrialLogs" size="small" />
-      </div>
+      <span class="font-semibold text-gray-800">歷史明細（最近 10 筆）</span>
     </template>
+
+    <!-- BUG-04: trialLogsError is separate from errorMessage so the
+         sidebar warrant list is unaffected by trial-log fetch failures -->
+    <a-alert
+      v-if="store.trialLogsError"
+      type="error"
+      :message="store.trialLogsError"
+      show-icon
+      class="mb-3"
+    />
 
     <a-table
       :columns="columns"
