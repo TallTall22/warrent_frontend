@@ -39,15 +39,24 @@ export function useTrialCalculation(
 
   watch(
     [warrantId, marketPrice],
-    ([newId, newPrice]) => {
+    ([newId, newPrice], [oldId]) => {
+      // When warrant switches, the old marketPrice fires this watch one tick
+      // before CalculatorPanel clears it. Cancel immediately so the stale
+      // price never triggers a calculation against the new warrant.
+      if (newId !== oldId) {
+        debouncedCalculate.cancel()
+        abortController?.abort()
+        calculation.value = null
+        calcError.value = null
+        isCalculating.value = false
+        return
+      }
       if (newId === null || newPrice === null || newPrice <= 0) {
         calculation.value = null
         calcError.value = null
         isCalculating.value = false
         return
       }
-      // BUG-06: clear stale result immediately so Save button disables
-      // while waiting for the new debounced request
       calculation.value = null
       debouncedCalculate(newId, newPrice)
     },
