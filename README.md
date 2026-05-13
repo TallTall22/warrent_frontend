@@ -302,20 +302,12 @@ Coverage 結果輸出至 `coverage/` 目錄，可用瀏覽器開啟 `coverage/in
 
 ---
 
-## 九、已知限制與潛在問題
+## 九、已知限制與設計說明
 
-### 1. in-flight HTTP 請求無法取消
-
-`useTrialCalculation` 以 `requestSeq` 序號丟棄過期回應，但底層 HTTP 請求仍會跑完（無 `AbortController`）。網路緩慢時，多次快速輸入可能造成不必要的頻寬消耗。未來可改為在 `calculateWarrant()` 傳入 `AbortSignal`，讓 axios 在新請求觸發時中止前一個請求。
-
-### 2. `pageSize: 1000` 一次取回所有資料
+### 1. `pageSize: 1000` 一次取回所有資料
 
 目前以 `pageSize: 1000` 一次載入全部權證，適用於「800 筆測試資料」的場景。若未來筆數超過 1000，需改為無限捲動或分頁載入。
 
-### 3. 搜尋同時涵蓋 warrantType
+### 2. 搜尋同時涵蓋 warrantType（規格外加分功能）
 
-`filteredWarrants` 除了依 `warrantId` 搜尋外，也支援輸入 `CALL` / `PUT` 過濾類型，此為超出 task.md 規範的加分功能。
-
-### 4. 無身份驗證機制
-
-`src/api/index.ts` 的 Request 攔截器已預留 `Authorization: Bearer` 注入點（已註解），正式環境需在此接入身份驗證流程。
+`filteredWarrants` 除了依 `warrantId` 搜尋外，也支援輸入 `CALL` / `PUT` 過濾類型，此為超出 task.md 規範的主動加分功能。

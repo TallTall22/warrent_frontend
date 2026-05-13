@@ -124,6 +124,7 @@ describe('calculateWarrant', () => {
     expect(mockPost).toHaveBeenCalledWith(
       '/warrants/00001C/calculate',
       { marketPrice: 110 },
+      { signal: undefined },
     )
     expect(result).toEqual(calcResult)
   })

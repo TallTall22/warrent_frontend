@@ -42,7 +42,7 @@ describe('useTrialCalculation', () => {
     vi.advanceTimersByTime(300)
     await nextTick()
 
-    expect(mockCalculate).toHaveBeenCalledWith('00001C', 110)
+    expect(mockCalculate).toHaveBeenCalledWith('00001C', 110, expect.any(AbortSignal))
   })
 
   it('debounce 300ms 內多次輸入只觸發一次 API', async () => {
@@ -61,7 +61,7 @@ describe('useTrialCalculation', () => {
     await nextTick()
 
     expect(mockCalculate).toHaveBeenCalledTimes(1)
-    expect(mockCalculate).toHaveBeenCalledWith('00001C', 110)
+    expect(mockCalculate).toHaveBeenCalledWith('00001C', 110, expect.any(AbortSignal))
   })
 
   // ─── task.md: 防禦性檢查：股價 <= 0 禁止存檔 ──────────────────────────────

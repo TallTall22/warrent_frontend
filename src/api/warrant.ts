@@ -29,19 +29,15 @@ export async function saveTrialLog(
   return response.data
 }
 
-/**
- * 呼叫後端即時試算（Delta、理論價值、建議避險張數）
- * POST /api/warrants/{warrantId}/calculate
- * @param warrantId 權證代碼
- * @param marketPrice 標的市價（必須 > 0）
- */
 export async function calculateWarrant(
   warrantId: string,
   marketPrice: number,
+  signal?: AbortSignal,
 ): Promise<TrialCalculation> {
   const response = await apiClient.post<TrialCalculation>(
     `/warrants/${encodeURIComponent(warrantId)}/calculate`,
     { marketPrice },
+    { signal },
   )
   return response.data
 }

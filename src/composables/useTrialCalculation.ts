@@ -11,15 +11,17 @@ export function useTrialCalculation(
   const isCalculating = ref<boolean>(false)
   const calcError = ref<string | null>(null)
 
-  // BUG-07: request sequence ID — stale responses are silently dropped
   let requestSeq = 0
+  let abortController: AbortController | null = null
 
   async function runCalculate(id: string, price: number): Promise<void> {
+    abortController?.abort()
+    abortController = new AbortController()
     const seq = ++requestSeq
     isCalculating.value = true
     calcError.value = null
     try {
-      const result = await calculateWarrant(id, price)
+      const result = await calculateWarrant(id, price, abortController.signal)
       if (seq !== requestSeq) return
       calculation.value = result
     } catch (err) {
@@ -58,6 +60,7 @@ export function useTrialCalculation(
   if (getCurrentInstance()) {
     onUnmounted(() => {
       debouncedCalculate.cancel()
+      abortController?.abort()
       requestSeq = Infinity
     })
   }
