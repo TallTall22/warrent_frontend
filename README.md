@@ -301,13 +301,3 @@ Coverage 結果輸出至 `coverage/` 目錄，可用瀏覽器開啟 `coverage/in
 | Vacuous Test：「切換後清空 calculation」測試永遠通過（前置條件未觸發） | 測試形同虛設 | 補上先觸發計算、確認結果後再測試清空 |
 
 ---
-
-## 九、已知限制與設計說明
-
-### 1. `pageSize: 1000` 一次取回所有資料
-
-目前以 `pageSize: 1000` 一次載入全部權證，適用於「800 筆測試資料」的場景。若未來筆數超過 1000，需改為無限捲動或分頁載入。
-
-### 2. 搜尋同時涵蓋 warrantType（規格外加分功能）
-
-`filteredWarrants` 除了依 `warrantId` 搜尋外，也支援輸入 `CALL` / `PUT` 過濾類型，此為超出 task.md 規範的主動加分功能。
