@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { Warrant, TrialLog } from '@/types/warrant'
 import { getWarrants, getTrialLogs } from '@/api/warrant'
@@ -56,6 +56,17 @@ export const useWarrantStore = defineStore('warrant', () => {
     fetchWarrantsByKeyword(value)
   }
 
+  // 後端若未實作 keyword 過濾，前端保底過濾確保搜尋正常顯示
+  const filteredWarrants = computed<Warrant[]>(() => {
+    const keyword = searchKeyword.value.trim().toLowerCase()
+    if (!keyword) return warrants.value
+    return warrants.value.filter(
+      (w) =>
+        w.warrantId.toLowerCase().includes(keyword) ||
+        w.warrantType.toLowerCase().includes(keyword),
+    )
+  })
+
   async function selectWarrant(warrant: Warrant): Promise<void> {
     selectedWarrant.value = warrant
     trialLogs.value = []
@@ -81,6 +92,7 @@ export const useWarrantStore = defineStore('warrant', () => {
 
   return {
     warrants,
+    filteredWarrants,
     selectedWarrant,
     searchKeyword,
     trialLogs,

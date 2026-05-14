@@ -59,7 +59,7 @@ function handleSelectWarrant(warrant: Parameters<typeof store.selectWarrant>[0])
 
     <!-- 空結果 -->
     <a-empty
-      v-else-if="store.warrants.length === 0"
+      v-else-if="store.filteredWarrants.length === 0"
       description="沒有符合條件的權證"
       class="py-12"
     />
@@ -70,7 +70,7 @@ function handleSelectWarrant(warrant: Parameters<typeof store.selectWarrant>[0])
       role="listbox"
       aria-label="權證清單"
       class="flex-1 overflow-auto"
-      :items="store.warrants"
+      :items="store.filteredWarrants"
       :item-size="56"
       key-field="warrantId"
       v-slot="{ item }"
@@ -83,7 +83,7 @@ function handleSelectWarrant(warrant: Parameters<typeof store.selectWarrant>[0])
     </RecycleScroller>
 
     <div class="pt-2 text-xs text-gray-400 text-right border-t border-gray-100">
-      共 {{ store.warrants.length }} 筆
+      共 {{ store.filteredWarrants.length }} 筆
     </div>
   </div>
 </template>
