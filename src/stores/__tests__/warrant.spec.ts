@@ -57,33 +57,43 @@ describe('fetchWarrants', () => {
   })
 })
 
-// ─── task.md: 支援代碼關鍵字搜尋 ─────────────────────────────────────────────
+// ─── task.md: 支援代碼關鍵字搜尋（後端過濾） ────────────────────────────────
 
-describe('filteredWarrants（搜尋功能）', () => {
-  it('無關鍵字時回傳全部清單', () => {
+describe('setSearchKeyword（後端搜尋）', () => {
+  it('debounce 到期後以 keyword 呼叫 getWarrants', async () => {
+    const result = [makeWarrant({ warrantId: '00001C' })]
+    mockGetWarrants.mockResolvedValue(result)
+
     const store = useWarrantStore()
-    store.warrants = [makeWarrant({ warrantId: '00001C' }), makeWarrant({ warrantId: '00002P' })]
-
-    expect(store.filteredWarrants).toHaveLength(2)
-  })
-
-  it('依代碼關鍵字過濾（大小寫不敏感）', async () => {
-    const store = useWarrantStore()
-    store.warrants = [makeWarrant({ warrantId: '00001C' }), makeWarrant({ warrantId: '00002P' })]
     store.setSearchKeyword('00001')
     vi.advanceTimersByTime(300)
+    await vi.runAllTimersAsync()
 
-    expect(store.filteredWarrants).toHaveLength(1)
-    expect(store.filteredWarrants[0].warrantId).toBe('00001C')
+    expect(mockGetWarrants).toHaveBeenCalledWith('00001')
+    expect(store.warrants).toEqual(result)
   })
 
-  it('關鍵字無符合時回傳空陣列', () => {
-    const store = useWarrantStore()
-    store.warrants = [makeWarrant({ warrantId: '00001C' })]
-    store.setSearchKeyword('ZZZZZ')
-    vi.advanceTimersByTime(300)
+  it('debounce 未到期前不呼叫 API', () => {
+    mockGetWarrants.mockResolvedValue([])
 
-    expect(store.filteredWarrants).toHaveLength(0)
+    const store = useWarrantStore()
+    store.setSearchKeyword('00001')
+    vi.advanceTimersByTime(299)
+
+    expect(mockGetWarrants).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(1)
+  })
+
+  it('空字串時以無 keyword 呼叫 getWarrants', async () => {
+    const list = [makeWarrant()]
+    mockGetWarrants.mockResolvedValue(list)
+
+    const store = useWarrantStore()
+    store.setSearchKeyword('')
+    vi.advanceTimersByTime(300)
+    await vi.runAllTimersAsync()
+
+    expect(mockGetWarrants).toHaveBeenCalledWith('')
   })
 })
 

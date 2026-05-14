@@ -1,11 +1,10 @@
 import apiClient from './index'
 import type { Warrant, TrialLog, SaveTrialLogPayload, TrialCalculation } from '@/types/warrant'
 
-export async function getWarrants(): Promise<Warrant[]> {
-  const response = await apiClient.get<{ data: Warrant[] }>(
-    '/warrants',
-    { params: { pageSize: 1000 } },
-  )
+export async function getWarrants(keyword?: string): Promise<Warrant[]> {
+  const params: Record<string, unknown> = { pageSize: 1000 }
+  if (keyword && keyword.trim()) params.keyword = keyword.trim()
+  const response = await apiClient.get<{ data: Warrant[] }>('/warrants', { params })
   return response.data.data
 }
 
