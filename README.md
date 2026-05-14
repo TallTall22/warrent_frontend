@@ -143,11 +143,15 @@ Composable（useTrialCalculation）
 
 ### 4.3 虛擬捲動處理 800 筆清單
 
-使用 `vue-virtual-scroller`（`RecycleScroller`）替代原生 `v-for`。DOM 節點數量維持恆定（約 10–15 個），滾動時只更新資料綁定，不新增或移除元素。800 筆資料一次取回（`pageSize=1000`），搭配 Pinia computed `filteredWarrants` 在用戶端過濾，無需每次搜尋都打 API。
+使用 `vue-virtual-scroller`（`RecycleScroller`）替代原生 `v-for`。DOM 節點數量維持恆定（約 10–15 個），滾動時只更新資料綁定，不新增或移除元素。
+
+權證代碼搜尋由**後端負責過濾**：使用者輸入關鍵字後，前端將 `keyword` 作為 query param 傳入 `GET /warrants?keyword=xxx&pageSize=1000`，後端回傳已過濾的清單；前端不再維護本地 `filteredWarrants`，直接顯示 `warrants`。
 
 ### 4.4 debounce 統一工具
 
 搜尋關鍵字（`stores/warrant.ts`）與即時試算觸發（`useTrialCalculation.ts`）共用同一個 `src/utils/debounce.ts`，均設定 300ms 延遲。`debounce` 函式回傳帶 `cancel()` 方法的型別 `Debounced<T>`，讓 `onUnmounted` 可以安全清除計時器。
+
+搜尋的 300ms debounce **節流的是 API 呼叫**（而非本地 filter），避免使用者逐字輸入時打出過多請求。
 
 ### 4.5 RWD 佈局
 
@@ -242,7 +246,7 @@ Vitest 3 + @vue/test-utils 2 + jsdom
 | 測試檔案 | 測試數 | 涵蓋重點 |
 |---|---|---|
 | `api/__tests__/warrant.spec.ts` | 8 | getWarrants / getTrialLogs / saveTrialLog（冪等 Key）/ calculateWarrant |
-| `stores/__tests__/warrant.spec.ts` | 11 | fetchWarrants / filteredWarrants（搜尋）/ selectWarrant / prependTrialLog（10 筆上限）/ errorMessage 與 trialLogsError 獨立性 |
+| `stores/__tests__/warrant.spec.ts` | 11 | fetchWarrants / 後端關鍵字搜尋（keyword param、debounce）/ selectWarrant / prependTrialLog（10 筆上限）/ errorMessage 與 trialLogsError 獨立性 |
 | `composables/__tests__/useTrialCalculation.spec.ts` | 8 | debounce 觸發時機、防禦性輸入檢查（≤0）、Race Condition 清空、API 失敗回饋 |
 | `components/__tests__/CalculatorPanel.spec.ts` | 6 | canSave 條件（含 isCalculating）、儲存成功後 Key 廢棄、冪等重試同一 Key、切換權證清空市價 |
 
